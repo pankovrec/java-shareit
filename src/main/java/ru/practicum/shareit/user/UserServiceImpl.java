@@ -17,13 +17,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(User user) {
-        return userStorage.addUser(user);
+    public User createUser(UserDto user) {
+        return userStorage.addUser(UserMapper.toUser(user));
     }
 
     @Override
-    public User updateUser(long userId, User user) {
-        return userStorage.updateUser(userId, user);
+    public User updateUser(long userId, UserDto user) {
+        return userStorage.updateUser(userId, UserMapper.toUser(user));
     }
 
     @Override

@@ -39,9 +39,7 @@ public class UserStorageImpl implements UserStorage {
         }
         if (user.getEmail() != null) {
             if (validateEmail(user)) {
-                throw new DuplicateEmailException(
-                        String.format("e-mail %s не может повторяться",
-                                user.getEmail()));
+                throw new DuplicateEmailException(String.format("e-mail %s не может повторяться", user.getEmail()));
             }
             newUser.setEmail(user.getEmail());
         }
@@ -77,6 +75,7 @@ public class UserStorageImpl implements UserStorage {
     }
 
     private Long makeId() {
-        return (id == 0L) ? id = 1L : ++id;
+        //   return (id == 0L) ? id = 1L : ++id;
+        return ++id;
     }
 }
