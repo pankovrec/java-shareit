@@ -1,7 +1,7 @@
 package ru.practicum.shareit.user.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
  * UserModel.
  */
 @Data
-@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     private long id;
     private String name;
@@ -18,6 +18,9 @@ public class User {
     @Email
     private String email;
 
-    public User() {
+    public User(long id, String name, String email) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
     }
 }

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exceptions.DuplicateEmailException;
 import ru.practicum.shareit.exceptions.NotFoundUserException;
@@ -12,24 +13,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class UserStorageImpl implements UserStorage {
     private final Map<Long, User> users = new HashMap<>();
     private long id;
 
     @Override
-    public User addUser(User user) {
+    public UserDto addUser(User user) {
         if (validateEmail(user)) {
+            log.info("Нельзя использовать повторяющиеся email {}", user.getEmail());
             throw new DuplicateEmailException(
-                    String.format("Нельзя использовать повторяющиеся e-mail %s",
-                            user.getEmail()));
+                    String.format("Нельзя использовать повторяющиеся e-mail %s", user.getEmail()));
         }
         user.setId(makeId());
         users.put(user.getId(), user);
-        return users.get(user.getId());
+        return UserMapper.toUserDto(users.get(user.getId()));
     }
 
     @Override
-    public User updateUser(long userId, User user) {
+    public UserDto updateUser(long userId, User user) {
         User newUser = new User();
         if (users.containsKey(userId)) {
             newUser = users.get(userId);
@@ -39,12 +41,13 @@ public class UserStorageImpl implements UserStorage {
         }
         if (user.getEmail() != null) {
             if (validateEmail(user)) {
+                log.info("Нельзя использовать повторяющиеся email {}", user.getEmail());
                 throw new DuplicateEmailException(String.format("e-mail %s не может повторяться", user.getEmail()));
             }
             newUser.setEmail(user.getEmail());
         }
         users.put(userId, newUser);
-        return newUser;
+        return UserMapper.toUserDto(users.get(userId));
     }
 
     @Override
@@ -52,6 +55,7 @@ public class UserStorageImpl implements UserStorage {
         if (users.containsKey(userId)) {
             return UserMapper.toUserDto(users.get(userId));
         } else {
+            log.info("Пользователя с id {} нет в системе", userId);
             throw new NotFoundUserException(String.format("Пользователя с id %s нет в системе", userId));
         }
     }
@@ -75,7 +79,6 @@ public class UserStorageImpl implements UserStorage {
     }
 
     private Long makeId() {
-        //   return (id == 0L) ? id = 1L : ++id;
         return ++id;
     }
 }

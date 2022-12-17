@@ -10,12 +10,12 @@ public interface UserStorage {
     /**
      * добавление пользователя
      */
-    User addUser(User user);
+    UserDto addUser(User user);
 
     /**
      * обновление пользователя
      */
-    User updateUser(long userId, User user);
+    UserDto updateUser(long userId, User user);
 
     /**
      * получить пользователя по id

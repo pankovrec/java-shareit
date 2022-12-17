@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exceptions.NotFoundItemException;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -8,7 +9,7 @@ import ru.practicum.shareit.exceptions.NotFoundUserException;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Component
 public class ItemStorageImpl implements ItemStorage {
     private final Map<Long, List<Item>> items = new HashMap<>();
@@ -28,30 +29,31 @@ public class ItemStorageImpl implements ItemStorage {
 
     @Override
     public ItemDto updateItem(long userId, ItemDto itemDto, long itemId) {
-        if (items.get(userId) != null) {
-            if (items.get(userId).contains(getItem(itemId))) {
-                Item newItem = getItem(itemId);
-                if (itemDto.getId() != 0L) {
-                    newItem.setId(itemDto.getId());
-                }
-                if (itemDto.getName() != null) {
-                    newItem.setName(itemDto.getName());
-                }
-                if (itemDto.getDescription() != null) {
-                    newItem.setDescription(itemDto.getDescription());
-                }
-                if (itemDto.getAvailable() != null) {
-                    newItem.setAvailable(itemDto.getAvailable());
-                }
-                deleteItem(userId, itemId);
-                items.get(userId).add(newItem);
-                return ItemMapper.toItemDto(newItem);
-            } else {
-                throw new NotFoundItemException(String.format("У пользователя %s нет вещи с id = %s",
-                        userId, itemId));
-            }
-        } else {
+        if (items.get(userId) == null) {
+            log.info("Нет пользователя с id {}", userId);
             throw new NotFoundUserException(String.format("Нет пользователя с id = %s", userId));
+        }
+        if (items.get(userId).contains(getItem(itemId))) {
+            Item newItem = getItem(itemId);
+            if (itemDto.getId() != 0L) {
+                newItem.setId(itemDto.getId());
+            }
+            if (itemDto.getName() != null) {
+                newItem.setName(itemDto.getName());
+            }
+            if (itemDto.getDescription() != null) {
+                newItem.setDescription(itemDto.getDescription());
+            }
+            if (itemDto.getAvailable() != null) {
+                newItem.setAvailable(itemDto.getAvailable());
+            }
+            deleteItem(userId, itemId);
+            items.get(userId).add(newItem);
+            return ItemMapper.toItemDto(newItem);
+        } else {
+            log.info("У пользователя с id {} нет такой вещи {}", userId, itemId);
+            throw new NotFoundItemException(String.format("У пользователя %s нет вещи с id = %s",
+                    userId, itemId));
         }
     }
 
