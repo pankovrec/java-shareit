@@ -9,6 +9,7 @@ import ru.practicum.shareit.exceptions.NotFoundUserException;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 @Slf4j
 @Component
 public class ItemStorageImpl implements ItemStorage {
