@@ -85,8 +85,8 @@ public class ItemServiceImpl implements ItemService {
     public Collection<ItemDtoWithBooking> getAllItem(long userId) {
         List<Item> items = itemRepository.findAllByOwnerId(userId);
         items.sort(Comparator.comparing(Item::getId));
-        List<ItemDtoWithBooking> itemsDto = items.stream().
-                map(ItemMapper::toItemDtoWithBooking)
+        List<ItemDtoWithBooking> itemsDto = items.stream()
+                        .map(ItemMapper::toItemDtoWithBooking)
                 .collect(Collectors.toList());
         for (int i = 0; i < itemsDto.size(); i++) {
             setBookings(itemsDto.get(i), items.get(i).getId());
