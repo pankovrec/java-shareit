@@ -5,49 +5,68 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.NotFoundUserException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
 
-import java.util.Collection;
+import java.util.List;
+
+import static ru.practicum.shareit.user.UserMapper.toUser;
+
+/**
+ * User service impl.
+ */
 
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
+
+    public static void checkUserExistsById(UserRepository userRepository, Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundUserException("User not found.");
+        }
+    }
 
     @Autowired
-    public UserServiceImpl(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @Override
-    public UserDto createUser(UserDto user) {
-        return userStorage.addUser(UserMapper.toUser(user));
+    public UserDto createUser(UserDto userDto) {
+        User user = toUser(userDto);
+        User addedUser = userRepository.save(user);
+        return UserMapper.toUserDto(addedUser);
     }
 
     @Override
     public UserDto updateUser(long userId, UserDto user) {
-        if (!userStorage.getAllUsers().contains(userStorage.getUser(userId))) {
-            log.info("Нет пользователя с id {}", userId);
-            throw new NotFoundUserException("Нет пользователя с id " + userId);
+        checkUserExistsById(userRepository, userId);
+        User updatedUser = userRepository.findById(userId).orElseThrow();
+        if (user.getName() != null) {
+            updatedUser.setName(user.getName());
         }
-        return userStorage.updateUser(userId, UserMapper.toUser(user));
+        if (user.getEmail() != null) {
+            updatedUser.setEmail(user.getEmail());
+        }
+        return UserMapper.toUserDto(userRepository.save(updatedUser));
     }
 
     @Override
     public UserDto getUser(long userId) {
-        if (!userStorage.getAllUsers().contains(userStorage.getUser(userId))) {
-            log.info("Нет пользователя с id {}", userId);
-            throw new NotFoundUserException("Нет пользователя с id " + userId);
-        }
-        return userStorage.getUser(userId);
+        checkUserExistsById(userRepository, userId);
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundUserException("Нет пользователя" +
+                " с id " + userId));
+        return UserMapper.toUserDto(user);
     }
 
     @Override
-    public Collection<UserDto> getAllUsers() {
-        return userStorage.getAllUsers();
+    public List<UserDto> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return UserMapper.toUserDto(users);
     }
 
     @Override
     public void deleteUser(long userId) {
-        userStorage.deleteUser(userId);
+        userRepository.deleteById(userId);
     }
 }

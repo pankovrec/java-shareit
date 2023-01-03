@@ -3,6 +3,10 @@ package ru.practicum.shareit.exceptions;
 
 import lombok.Data;
 
+/**
+ * ErrorResponseClass
+ */
+
 @Data
 public class Error {
     private int statusCode;
