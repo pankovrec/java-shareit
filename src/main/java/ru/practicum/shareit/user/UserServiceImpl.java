@@ -20,12 +20,6 @@ import static ru.practicum.shareit.user.UserMapper.toUser;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
-    public static void checkUserExistsById(UserRepository userRepository, Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NotFoundUserException("User not found.");
-        }
-    }
-
     @Autowired
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -40,8 +34,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(long userId, UserDto user) {
-        checkUserExistsById(userRepository, userId);
-        User updatedUser = userRepository.findById(userId).orElseThrow();
+        User updatedUser = userCheck(userId);
         if (user.getName() != null) {
             updatedUser.setName(user.getName());
         }
@@ -53,9 +46,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUser(long userId) {
-        checkUserExistsById(userRepository, userId);
-        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundUserException("Нет пользователя" +
-                " с id " + userId));
+        User user = userCheck(userId);
         return UserMapper.toUserDto(user);
     }
 
@@ -68,5 +59,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(long userId) {
         userRepository.deleteById(userId);
+    }
+
+    private User userCheck(long userId) {
+        return userRepository.findById(userId).orElseThrow(() ->
+                new NotFoundUserException(String.format("Пользователь с id = %d не найден!", userId)));
     }
 }

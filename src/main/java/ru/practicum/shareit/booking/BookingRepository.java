@@ -60,22 +60,16 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "order by b.start desc")
     List<Booking> findBookingByOwner(long bookerId);
 
-    @Query(nativeQuery = true,
-            value = "select * from booking " +
-                    "left join items i on booking.item_id = i.id " +
-                    "where item_id = ?1 " +
-                    "and end_date < ?2 " +
-                    "order by end_date desc " +
-                    "limit 1")
-    Booking findLastItemBooking(long itemId, LocalDateTime now);
+    @Query("select b from Booking b where b.item.id = ?1")
+    List<Booking> findAllByItemsId(long itemId);
 
-    @Query(nativeQuery = true,
-            value = "select * from booking " +
-                    "left join items i on booking.item_id = i.id " +
-                    "where item_id = ?1 " +
-                    "and booking.start_date > ?2 " +
-                    "order by end_date limit 1")
-    Booking findNextItemBooking(long itemId, LocalDateTime now);
+    @Query("select b from Booking b where b.item.id = ?1 and " +
+            "b.item.owner.id = ?2 and b.start <= ?3 order by b.end desc ")
+    Booking findLastItemBooking(long itemId, long userId, LocalDateTime now);
+
+    @Query("select b from Booking b where b.item.id = ?1 and " +
+            "b.item.owner.id = ?2 and b.start >= ?3 order by b.start asc")
+    Booking findNextItemBooking(long itemId, long userId, LocalDateTime now);
 
     List<Booking> findAllByBookerIdOrderByStartDesc(long userId);
 

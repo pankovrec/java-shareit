@@ -4,8 +4,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 
 /**
  * UserModel.
@@ -21,8 +19,6 @@ public class User {
     private long id;
     @Column(nullable = false)
     private String name;
-    @NotNull
-    @Email
     @Column(unique = true, nullable = false)
     private String email;
 

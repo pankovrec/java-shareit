@@ -9,12 +9,11 @@ import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static ru.practicum.shareit.user.UserServiceImpl.checkUserExistsById;
 
 /**
  * BookingServiceImpl
@@ -38,35 +37,36 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public OutBookingDto createBooking(long userId, BookingDto bookingDto) {
-        checkUserExistsById(userRepository, userId);
-        checkUserNotOwnerByItemIdAndUserId(bookingDto.getItemId(), userId);
-        checkBookingTimePeriod(bookingDto.getStart(), bookingDto.getEnd());
+        checkBookingDate(bookingDto);
+        User booker = userCheck(userId);
+        Item item = ItemCheck(bookingDto.getItemId());
 
-        Item item = itemRepository.findById(bookingDto.getItemId())
-                .orElseThrow(() -> new NotFoundItemException(
-                        String.format("Вещь id = %s не найдена", bookingDto.getItemId())));
-
-        if (item.getOwner().getId() == userId) {
-            throw new NotFoundUserException((String.format(
-                    "Невозможно бронирование собственное вещи пользователем %s",
-                    userId)));
-        }
+        checkItemOwner(userId, item);
         if (!item.getAvailable()) {
             throw new NotAvailableBookingException(String.format(
                     "Вещь с id = %s недоступна для бронирования",
                     bookingDto.getItemId()));
         }
-        Booking booking = BookingMapper.toBooking(bookingDto);
-        booking.setStatus(Status.WAITING);
-        booking.setItem(item);
-        booking.setBooker(userRepository.findById(userId).orElseThrow());
+        Booking booking = new Booking(0, bookingDto.getStart(), bookingDto.getEnd(),
+                item, booker, Status.WAITING);
         log.info("Пользователь id = {} бронирует вещь id = {}", userId, bookingDto.getItemId());
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
+
+    private User userCheck(long userId) {
+        return userRepository.findById(userId).orElseThrow(() ->
+                new NotFoundUserException(String.format("Пользователь с id = %d не найден!", userId)));
+    }
+
+    public Item ItemCheck(long itemId) {
+        return itemRepository.findById(itemId).orElseThrow(() ->
+                new NotFoundItemException(String.format("Вещь с id = %s не найдена!", itemId)));
+    }
+
     @Override
     public OutBookingDto getBooking(long bookingId, long userId) {
-        checkUserExistsById(userRepository, userId);
+        userCheck(userId);
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundBookingException(
                         String.format("Бронирование id = %s не найдено", bookingId)));
@@ -82,7 +82,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public OutBookingDto updateBookingStatus(long bookingId, boolean approved, long userId) {
-        checkUserExistsById(userRepository, userId);
+        userCheck(userId);
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundBookingException(
                         String.format("Бронирование id = %s не найдено", bookingId)));
@@ -98,8 +98,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<OutBookingDto> getAllBookingByUser(long userId, State state) {
-        checkUserExistsById(userRepository, userId);
-
+        userCheck(userId);
         switch (state) {
             case PAST:
                 return bookingRepository.findByBooker_IdAndEndIsBefore(userId,
@@ -128,7 +127,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<OutBookingDto> getAllBookingByOwner(long userId, State state) {
-        checkUserExistsById(userRepository, userId);
+        userCheck(userId);
 
         switch (state) {
             case PAST:
@@ -155,18 +154,16 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void checkBookingTimePeriod(LocalDateTime start, LocalDateTime end) {
-        if (start.isAfter(end)) {
-            throw new IncorrectDataException(String.format("Дата окончания %s должна быть после даты начала %s",
-                    end, start));
+    private void checkItemOwner(long userId, Item item) {
+        if (userId == item.getOwner().getId()) {
+            throw new UserNotOwnerException(String.format("Пользователь с id %d не может забронировать свою вещь %d",
+                    userId, item.getId()));
         }
     }
 
-    private void checkUserNotOwnerByItemIdAndUserId(long itemId, long userId) {
-        Long ownerId = itemRepository.getReferenceById(itemId).getOwner().getId();
-        if (ownerId.equals(userId)) {
-            throw new UserNotOwnerException(String.format("Пользователь с id %d не может забронировать свою вещь %d",
-                    ownerId, itemId));
+    private void checkBookingDate(BookingDto bookingRequestDto) {
+        if (bookingRequestDto.getStart().isAfter(bookingRequestDto.getEnd())) {
+            throw new IncorrectDataException("Дата окончания должна быть после даты начала");
         }
     }
 
