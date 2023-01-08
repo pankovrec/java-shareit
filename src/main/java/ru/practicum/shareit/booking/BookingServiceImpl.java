@@ -39,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
     public OutBookingDto createBooking(long userId, BookingDto bookingDto) {
         checkBookingDate(bookingDto);
         User booker = userCheck(userId);
-        Item item = ItemCheck(bookingDto.getItemId());
+        Item item = itemCheck(bookingDto.getItemId());
 
         checkItemOwner(userId, item);
         if (!item.getAvailable()) {
@@ -59,7 +59,7 @@ public class BookingServiceImpl implements BookingService {
                 new NotFoundUserException(String.format("Пользователь с id = %d не найден!", userId)));
     }
 
-    public Item ItemCheck(long itemId) {
+    public Item itemCheck(long itemId) {
         return itemRepository.findById(itemId).orElseThrow(() ->
                 new NotFoundItemException(String.format("Вещь с id = %s не найдена!", itemId)));
     }
