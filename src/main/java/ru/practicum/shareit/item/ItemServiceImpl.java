@@ -18,7 +18,6 @@ import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Item service Impl.
@@ -73,9 +72,7 @@ public class ItemServiceImpl implements ItemService {
         Booking lastBooking;
         Booking nextBooking;
         bookingList = bookingRepository.findAllByItemsId(item.getId());
-        Set<CommentDto> comments = commentRepository.findCommentsByItem_Id(item.getId()).stream()
-                .map(CommentMapper::toCommentDto)
-                .collect(Collectors.toSet());
+        Set<Comment> comments = commentRepository.findCommentsByItem_Id(item.getId());
         if (bookingList.isEmpty()) {
             lastBooking = null;
             nextBooking = null;
