@@ -1,33 +1,37 @@
 package ru.practicum.shareit.item;
 
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentDtoFromRequest;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface ItemService {
 
     /**
      * добавление вещи
      */
-    ItemDto createItem(long userId, ItemDto itemDto);
+    ItemDto createItem(ItemDto item, long userId);
 
-    /**
-     * обновление вещи
-     */
-    ItemDto updateItem(long userId, ItemDto itemDto, long itemId);
+    ItemDto updateItem(long userId, ItemDto item, long itemId);
 
-    /**
-     * получить вещь по id
-     */
-    ItemDto getItem(long itemId);
+    ItemDtoWithBooking getItem(long itemId, long userId);
 
     /**
      * получить все вещи
      */
-    Collection<ItemDto> getAllItem(long userId);
+    Collection<ItemDtoWithBooking> getAllItem(long userId);
 
     /**
      * поиск вещи
      */
-    Collection<ItemDto> searchItems(String text);
+    List<ItemDto> searchItems(String text);
+
+    /**
+     * оставить комментарий
+     */
+    CommentDto createComment(long userId, long itemId, CommentDtoFromRequest comment);
+
 }
