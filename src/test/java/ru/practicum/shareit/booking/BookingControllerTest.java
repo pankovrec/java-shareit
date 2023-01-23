@@ -49,6 +49,7 @@ class BookingControllerTest {
             LocalDateTime.now().plusDays(5), item, user, Status.WAITING);
     private final OutBookingDto booking1 = BookingMapper.toBookingDto(bookingDto);
     private final OutBookingDto booking2 = BookingMapper.toBookingDto(bookingDto2);
+
     @Test
     void create() throws Exception {
         when(bookingService.createBooking(anyLong(), any()))
@@ -93,6 +94,7 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.id", is(returnedBookingDto.getId()), Long.class))
                 .andExpect(jsonPath("$.status", is(returnedBookingDto.getStatus().name())));
     }
+
     @Test
     public void getAllBooking() {
         when(bookingService.getAllBookingByUser(Mockito.anyLong(), Mockito.any(State.class), Mockito.anyInt(), Mockito.anyInt()))
