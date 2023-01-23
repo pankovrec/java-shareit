@@ -120,12 +120,12 @@ public class BookingServiceImpl implements BookingService {
                     return bookingRepository.findCurrentBooking(userId, LocalDateTime.now(), pageable).stream()
                             .map(BookingMapper::toBookingDto).collect(Collectors.toList());
                 case WAITING:
-                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc
-                                    (userId, Status.WAITING, pageable).stream().map(BookingMapper::toBookingDto)
+                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING,
+                                    pageable).stream().map(BookingMapper::toBookingDto)
                             .collect(Collectors.toList());
                 case REJECTED:
-                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc
-                                    (userId, Status.REJECTED, pageable).stream().map(BookingMapper::toBookingDto)
+                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED,
+                                    pageable).stream().map(BookingMapper::toBookingDto)
                             .collect(Collectors.toList());
                 default:
                     return bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable).stream()
