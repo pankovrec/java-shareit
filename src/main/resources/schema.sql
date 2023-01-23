@@ -1,4 +1,4 @@
-drop table if exists users, items, booking, comments;
+drop table if exists users, requests, items, booking, comments;
 
 CREATE TABLE IF NOT EXISTS users
 (
@@ -6,6 +6,14 @@ CREATE TABLE IF NOT EXISTS users
     email VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(50) NOT NULL
     );
+
+CREATE TABLE IF NOT EXISTS requests
+(
+    id BIGSERIAL CONSTRAINT requests_pk PRIMARY KEY,
+    description VARCHAR(1024) NOT NULL,
+    requester_id BIGINT NOT NULL CONSTRAINT requests_requester_id REFERENCES users ON UPDATE CASCADE ON DELETE CASCADE,
+    created TIMESTAMP WITHOUT TIME ZONE
+);
 
 CREATE TABLE IF NOT EXISTS items
 (
@@ -16,6 +24,8 @@ CREATE TABLE IF NOT EXISTS items
     owner_id BIGINT NOT NULL CONSTRAINT items_owner_id_fk REFERENCES users(id) ON DELETE CASCADE,
     request_id BIGINT
     );
+
+
 
 CREATE TABLE IF NOT EXISTS booking
 (

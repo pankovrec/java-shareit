@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
  * OutBookingDto.
  */
 
-@Data
+@Getter
+@Setter
+@ToString
 @AllArgsConstructor
 public class OutBookingDto {
 
@@ -22,13 +24,16 @@ public class OutBookingDto {
 
 
     @AllArgsConstructor
+    @ToString
     @Getter
+    @Setter
     public static class Item {
         private long id;
         private String name;
     }
 
     @AllArgsConstructor
+    @ToString
     @Getter
     @Setter
     public static class User {

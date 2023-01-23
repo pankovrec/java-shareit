@@ -2,6 +2,9 @@ package ru.practicum.shareit.booking;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.*;
 import ru.practicum.shareit.booking.model.Booking;
@@ -97,60 +100,77 @@ public class BookingServiceImpl implements BookingService {
 
 
     @Override
-    public List<OutBookingDto> getAllBookingByUser(long userId, State state) {
+    public List<OutBookingDto> getAllBookingByUser(long userId, State state, int from, int size) {
         userCheck(userId);
-        switch (state) {
-            case PAST:
-                return bookingRepository.findByBooker_IdAndEndIsBefore(userId,
-                                LocalDateTime.now()).stream()
-                        .map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            case FUTURE:
-                return bookingRepository.findAllByBookerIdAndStartIsAfterOrderByStartDesc(userId,
-                                LocalDateTime.now()).stream()
-                        .map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            case CURRENT:
-                return bookingRepository.findCurrentBooking(userId, LocalDateTime.now()).stream()
-                        .map(BookingMapper::toBookingDto).collect(Collectors.toList());
-            case WAITING:
-                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING)
-                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-            case REJECTED:
-                return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED)
-                        .stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-            default:
-                return bookingRepository.findAllByBookerIdOrderByStartDesc(userId).stream()
-                        .map(BookingMapper::toBookingDto).collect(Collectors.toList());
+        if (size > 0 && from >= 0) {
+            int page = from / size;
+            Pageable pageable = PageRequest.of(page, size, Sort.by("start").descending());
+            switch (state) {
+                case PAST:
+                    return bookingRepository.findByBooker_IdAndEndIsBefore(userId,
+                                    LocalDateTime.now(), pageable).stream()
+                            .map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+                case FUTURE:
+                    return bookingRepository.findAllByBookerIdAndStartIsAfterOrderByStartDesc(userId,
+                                    LocalDateTime.now(), pageable).stream()
+                            .map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+                case CURRENT:
+                    return bookingRepository.findCurrentBooking(userId, LocalDateTime.now(), pageable).stream()
+                            .map(BookingMapper::toBookingDto).collect(Collectors.toList());
+                case WAITING:
+                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc
+                                    (userId, Status.WAITING, pageable).stream().map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+                case REJECTED:
+                    return bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc
+                                    (userId, Status.REJECTED, pageable).stream().map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+                default:
+                    return bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable).stream()
+                            .map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            }
+
+        } else {
+            throw new ArithmeticException("Ошибка в индекса первого элемента или количества элементов для отображения");
         }
     }
 
     @Override
-    public List<OutBookingDto> getAllBookingByOwner(long userId, State state) {
+    public List<OutBookingDto> getAllBookingByOwner(long userId, State state, int from, int size) {
         userCheck(userId);
-
-        switch (state) {
-            case PAST:
-                return bookingRepository.findBookingByOwnerPast(userId,
-                        LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-            case FUTURE:
-                return bookingRepository.findBookingByOwnerFuture(userId,
-                        LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-            case CURRENT:
-                return bookingRepository.findBookingByOwnerCurrent(userId,
-                        LocalDateTime.now()).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
-            case WAITING:
-                return bookingRepository.findAllStatusByItemsOwnerId(userId, Status.WAITING).stream()
-                        .map(BookingMapper::toBookingDto).collect(Collectors.toList());
-            case REJECTED:
-                return bookingRepository.findAllStatusByItemsOwnerId(userId, Status.REJECTED).stream()
-                        .map(BookingMapper::toBookingDto).collect(Collectors.toList());
-            case ALL:
-                return bookingRepository.findBookingByOwner(userId).stream().map(BookingMapper::toBookingDto)
-                        .collect(Collectors.toList());
-            default:
-                return bookingRepository.findBookingByOwnerAndStatus(
-                        userId, state).stream().map(BookingMapper::toBookingDto).collect(Collectors.toList());
+        if (size > 0 && from >= 0) {
+            int page = from / size;
+            Pageable pageable = PageRequest.of(page, size, Sort.by("start").descending());
+            switch (state) {
+                case PAST:
+                    return bookingRepository.findBookingByOwnerPast(userId,
+                                    LocalDateTime.now(), pageable).stream().map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+                case FUTURE:
+                    return bookingRepository.findBookingByOwnerFuture(userId,
+                                    LocalDateTime.now(), pageable).stream().map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+                case CURRENT:
+                    return bookingRepository.findBookingByOwnerCurrent(userId,
+                                    LocalDateTime.now(), pageable).stream().map(BookingMapper::toBookingDto)
+                            .collect(Collectors.toList());
+                case WAITING:
+                    return bookingRepository.findAllStatusByItemsOwnerId(userId, Status.WAITING, pageable).stream()
+                            .map(BookingMapper::toBookingDto).collect(Collectors.toList());
+                case REJECTED:
+                    return bookingRepository.findAllStatusByItemsOwnerId(userId, Status.REJECTED, pageable).stream()
+                            .map(BookingMapper::toBookingDto).collect(Collectors.toList());
+                case ALL:
+                    return bookingRepository.findBookingByOwner(userId, pageable).stream()
+                            .map(BookingMapper::toBookingDto).collect(Collectors.toList());
+                default:
+                    return bookingRepository.findBookingByOwnerAndStatus(userId, state, pageable).stream()
+                            .map(BookingMapper::toBookingDto).collect(Collectors.toList());
+            }
+        } else {
+            throw new ArithmeticException("Ошибка в индекса первого элемента или количества элементов для отображения");
         }
     }
 
