@@ -105,4 +105,17 @@ class UserControllerTest {
                 .andExpect(jsonPath("$[*].id", containsInAnyOrder(1, 2)))
                 .andExpect(jsonPath("$[*].name", containsInAnyOrder("user1", "user2")));
     }
+
+    @Test
+    public void deleteUser() {
+        try {
+            mockMvc.perform(delete("/users/{userId}", 1)
+                            .characterEncoding(StandardCharsets.UTF_8)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .accept(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isOk());
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
 }

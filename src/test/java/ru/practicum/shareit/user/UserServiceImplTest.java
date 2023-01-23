@@ -104,6 +104,13 @@ class UserServiceImplTest {
     }
 
     @Test
+    public void deleteUser() {
+        userService.deleteUser(1L);
+        Mockito.verify(userRepository, Mockito.times(1))
+                .deleteById(1L);
+    }
+
+    @Test
     void updateFail() {
         Mockito
                 .when(userRepository.findById(Mockito.anyLong()))
