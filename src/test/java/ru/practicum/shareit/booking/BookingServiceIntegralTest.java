@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.dto.OutBookingDto;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.booking.dto.OutBookingDto;
 import ru.practicum.shareit.item.ItemService;
-import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
@@ -35,6 +35,10 @@ public class BookingServiceIntegralTest {
     private final UserDto user2 = new UserDto(2, "User2", "user2@mail.ru");
     private ItemDto item1 = new ItemDto();
     private BookingDto bookingDto;
+    private BookingDto futureDto;
+    private BookingDto rejectedDto;
+    private BookingDto currentDto;
+
 
     @BeforeEach
     public void init() {
@@ -51,6 +55,11 @@ public class BookingServiceIntegralTest {
         itemDto.setAvailable(true);
         item1 = itemService.createItem(itemDto, user2.getId());
         bookingDto = new BookingDto(item1.getId(), LocalDateTime.now(), LocalDateTime.now());
+        futureDto = new BookingDto(item1.getId(), LocalDateTime.now().plusYears(3), LocalDateTime.now().plusYears(3)
+                .plusDays(1));
+        rejectedDto = new BookingDto(item1.getId(), LocalDateTime.now().minusDays(4), LocalDateTime.now().minusDays(2));
+        currentDto = new BookingDto(item1.getId(), LocalDateTime.now().minusDays(3), LocalDateTime.now().plusDays(3));
+
     }
 
     @Test
@@ -98,6 +107,65 @@ public class BookingServiceIntegralTest {
     }
 
     @Test
+    public void getAllByUserStatePast() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), bookingDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByUser(user1.getId(), State.PAST, 0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByUserStateFuture() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), futureDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByUser(user1.getId(), State.FUTURE,
+                0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByUserStateCurrent() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), currentDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByUser(user1.getId(), State.CURRENT,
+                0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByUserStateWaiting() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), bookingDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByUser(user1.getId(), State.WAITING, 0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByUserStateRejected() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), rejectedDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        booking.setStatus(Status.REJECTED);
+        bookingService.updateBookingStatus(1, false, 2);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByUser(user1.getId(), State.REJECTED, 0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
     public void getAllByOwner() {
         OutBookingDto booking = bookingService.createBooking(user1.getId(), bookingDto);
         OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
@@ -105,6 +173,64 @@ public class BookingServiceIntegralTest {
         OutBookingDto.User booker = new OutBookingDto.User(1);
         booking.setBooker(booker);
         List<OutBookingDto> bookingList = bookingService.getAllBookingByOwner(user2.getId(), State.ALL, 0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByOwnerStatePast() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), bookingDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByOwner(user2.getId(), State.PAST, 0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByOwnerStateFuture() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), futureDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByOwner(user2.getId(), State.FUTURE, 0,
+                5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByOwnerStateCurrent() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), currentDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByOwner(user2.getId(), State.CURRENT, 0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByOwnerStateWaiting() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), bookingDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByOwner(user2.getId(), State.WAITING, 0, 5);
+        assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
+    }
+
+    @Test
+    public void getAllByOwnerStateRejected() {
+        OutBookingDto booking = bookingService.createBooking(user1.getId(), rejectedDto);
+        OutBookingDto.Item item = new OutBookingDto.Item(1, "item1");
+        booking.setItem(item);
+        OutBookingDto.User booker = new OutBookingDto.User(1);
+        booking.setBooker(booker);
+        booking.setStatus(Status.REJECTED);
+        bookingService.updateBookingStatus(1, false, 2);
+        List<OutBookingDto> bookingList = bookingService.getAllBookingByOwner(user2.getId(), State.REJECTED, 0, 5);
         assertThat(bookingList.get(0).toString(), equalTo(booking.toString()));
     }
 }
