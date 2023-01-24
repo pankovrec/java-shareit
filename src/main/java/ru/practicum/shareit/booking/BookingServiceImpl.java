@@ -77,7 +77,7 @@ public class BookingServiceImpl implements BookingService {
             log.info("Пользователь id = {} запрашивает информацию о бронировании id = {}", userId, bookingId);
             return BookingMapper.toBookingDto(booking);
         } else {
-            throw new NotFoundBookingException(
+            throw new UserNotOwnerException(
                     String.format("Пользователь %s не может запрашивать информацию о бронировании %s",
                             userId, bookingId));
         }
@@ -90,7 +90,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundBookingException(
                         String.format("Бронирование id = %s не найдено", bookingId)));
         if (booking.getItem().getOwner().getId() != userId) {
-            throw new NotFoundUserException(String.format("Данная вещь не принадлежит юзеру id = %s", userId));
+            throw new UserNotOwnerException(String.format("Данная вещь не принадлежит юзеру id = %s", userId));
         }
         checkBookingStatusNotApprove(booking);
         booking.setStatus((approved == Boolean.TRUE) ? (Status.APPROVED) : (Status.REJECTED));
@@ -174,7 +174,7 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void checkItemOwner(long userId, Item item) {
+    public void checkItemOwner(long userId, Item item) {
         if (userId == item.getOwner().getId()) {
             throw new UserNotOwnerException(String.format("Пользователь с id %d не может забронировать свою вещь %d",
                     userId, item.getId()));

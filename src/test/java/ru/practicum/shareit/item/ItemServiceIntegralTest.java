@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import ru.practicum.shareit.booking.BookingService;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.OutBookingDto;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.dto.CommentDtoFromRequest;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -16,6 +20,8 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.UserService;
 
 import javax.persistence.EntityManager;
+
+import java.time.LocalDateTime;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -29,13 +35,18 @@ public class ItemServiceIntegralTest {
     private final EntityManager em;
     private final ItemService itemService;
     private final UserService userService;
+    private final BookingService bookingService;
     private final ItemRequestService itemRequestService;
     private final UserDto user1 = new UserDto(1L, "User1", "user1@test.ru");
     private final UserDto user2 = new UserDto(2L, "User2", "user2@test.ru");
     private final InputRequestItemDto request = new InputRequestItemDto();
     private final ItemDto itemDto = new ItemDto();
     private final CommentDtoFromRequest commentDto = new CommentDtoFromRequest();
-
+    private final BookingDto lastBookingDto = new BookingDto(
+            1L,
+            LocalDateTime.now().minusDays(5),
+            LocalDateTime.now().minusDays(2)
+    );
     @BeforeEach
     public void init() {
         em.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE;").executeUpdate();
@@ -93,5 +104,17 @@ public class ItemServiceIntegralTest {
         assertThat(itemDtoWithBooking.getName(), equalTo(item.getName()));
         assertThat(itemDtoWithBooking.getDescription(), equalTo(item.getDescription()));
         assertThat(itemDtoWithBooking.getAvailable(), equalTo(item.getAvailable()));
+    }
+
+    @Test
+    public void createComment() {
+        ItemDto item1 = itemService.createItem(itemDto, user1.getId());
+        OutBookingDto lastBooking = bookingService.createBooking(user2.getId(), lastBookingDto);
+        commentDto.setText("Comment for item1");
+        CommentDto comment = itemService.createComment(user2.getId(), item1.getId(), commentDto);
+        assertThat(comment.getId(), equalTo(1L));
+        assertThat(comment.getCreated(), notNullValue());
+        assertThat(comment.getAuthorName(), equalTo(user2.getName()));
+        assertThat(comment.getText(), equalTo(commentDto.getText()));
     }
 }

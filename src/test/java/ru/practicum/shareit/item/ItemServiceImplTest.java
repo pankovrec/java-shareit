@@ -3,15 +3,22 @@ package ru.practicum.shareit.item;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import ru.practicum.shareit.booking.BookingServiceImpl;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.OutBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.exceptions.NotFoundUserException;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentDtoFromRequest;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
@@ -32,7 +39,19 @@ class ItemServiceImplTest {
     ItemRepository itemRepository = Mockito.mock(ItemRepository.class);
     UserRepository userRepository = Mockito.mock(UserRepository.class);
     CommentRepository commentRepository = Mockito.mock(CommentRepository.class);
+
     ItemRequestRepository itemRequestRepository = Mockito.mock(ItemRequestRepository.class);
+    @InjectMocks
+    private BookingServiceImpl service;
+
+    private final Item item1 = new Item(1L, "item1", "item1_desc", true, null,
+            null);
+    private final User user1 = new User(1L, "user1", "user1@mail.ru");
+    private final User user2 = new User(2L, "user2", "user2@mail.ru");
+    private final Booking booking1 = new Booking(1L, LocalDateTime.now().minusDays(1),
+            LocalDateTime.now().plusDays(1), item1, user1, null);
+    private final BookingDto bookingDto = new BookingDto(1L, LocalDateTime.now(), LocalDateTime.now());
+    // User user = new User(1, "user1", "user1@mail.ru");
     User user = new User(1, "user1", "user1@mail.ru");
     Item item = new Item(1, "item1", "item1_desc", true, user, null);
     List<User> users = List.of(new User(1, "user1", "user1@mail.ru"),
