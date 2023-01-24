@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.OutBookingDto;
+import ru.practicum.shareit.exceptions.NotAvailableBookingException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentDtoFromRequest;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -116,5 +118,16 @@ public class ItemServiceIntegralTest {
         assertThat(comment.getCreated(), notNullValue());
         assertThat(comment.getAuthorName(), equalTo(user2.getName()));
         assertThat(comment.getText(), equalTo(commentDto.getText()));
+    }
+
+    @Test
+    public void createCommentFail() {
+        ItemDto item1 = itemService.createItem(itemDto, user1.getId());
+        OutBookingDto lastBooking = bookingService.createBooking(user2.getId(), lastBookingDto);
+        commentDto.setText("Comment for item1");
+        NotAvailableBookingException thrown = Assertions.assertThrows(NotAvailableBookingException.class, () ->
+                itemService.createComment(user1.getId(), item1.getId(), commentDto));
+        Assertions.assertEquals("Пользователь id = 1 не брал в аренду вещь id = 1, или аренда еще не завершена",
+                thrown.getMessage());
     }
 }

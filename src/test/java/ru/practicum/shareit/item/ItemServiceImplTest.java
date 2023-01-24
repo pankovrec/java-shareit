@@ -222,11 +222,44 @@ class ItemServiceImplTest {
     }
 
     @Test
+    void updateFail() {
+        Mockito
+                .when(itemRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(item));
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(user));
+        item.setOwner(user2);
+        Mockito
+                .when(itemRepository.save(Mockito.any(Item.class)))
+                .thenReturn(item);
+        final NotFoundItemException exception = Assertions.assertThrows(
+                NotFoundItemException.class, () -> itemService.updateItem(1, itemDto, 1));
+        Assertions.assertEquals("У пользователя с id = 1 нет вещи с id = 1", exception.getMessage());
+    }
+
+    @Test
     void search() {
         Mockito
                 .when(itemRepository.searchItems(Mockito.anyString(), Mockito.any(Pageable.class)))
                 .thenReturn(itemPage);
         Collection<ItemDto> itemDtos = itemService.searchItems("item1", 0, 5);
+        for (ItemDto foundedItemDto : itemDtos) {
+            if (foundedItemDto.getId() == (1)) {
+                assertThat(foundedItemDto.getId(), equalTo(itemDto.getId()));
+                assertThat(foundedItemDto.getName(), equalTo(itemDto.getName()));
+                assertThat(foundedItemDto.getDescription(), equalTo(itemDto.getDescription()));
+                assertThat(foundedItemDto.getAvailable(), equalTo(itemDto.getAvailable()));
+            }
+        }
+    }
+
+    @Test
+    void searchWithEmpty() {
+        Mockito
+                .when(itemRepository.searchItems(Mockito.anyString(), Mockito.any(Pageable.class)))
+                .thenReturn(itemPage);
+        Collection<ItemDto> itemDtos = itemService.searchItems("", 0, 5);
         for (ItemDto foundedItemDto : itemDtos) {
             if (foundedItemDto.getId() == (1)) {
                 assertThat(foundedItemDto.getId(), equalTo(itemDto.getId()));
