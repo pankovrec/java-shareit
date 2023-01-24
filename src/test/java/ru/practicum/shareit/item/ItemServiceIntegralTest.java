@@ -47,6 +47,7 @@ public class ItemServiceIntegralTest {
             LocalDateTime.now().minusDays(5),
             LocalDateTime.now().minusDays(2)
     );
+
     @BeforeEach
     public void init() {
         em.createNativeQuery("SET REFERENTIAL_INTEGRITY FALSE;").executeUpdate();
