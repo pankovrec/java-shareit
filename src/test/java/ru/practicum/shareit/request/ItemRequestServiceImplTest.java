@@ -191,6 +191,17 @@ class ItemRequestServiceImplTest {
     }
 
     @Test
+    public void getAllFail() {
+        User user = new User(1L, "user1", "user1@email.com");
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(user));
+        ArithmeticException thrown = Assertions.assertThrows(ArithmeticException.class, () ->
+                requestService.getAllRequest(1, 5, 0));
+        Assertions.assertEquals("Неправильно заданы параметры", thrown.getMessage());
+    }
+
+    @Test
     void getAllRequestsIfNull() {
         Mockito
                 .when(requestRepository.findAllByRequesterIdIsNotLike(Mockito.anyLong(), Mockito.any(Pageable.class)))

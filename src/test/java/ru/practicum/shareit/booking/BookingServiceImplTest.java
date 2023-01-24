@@ -10,10 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.OutBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.exceptions.NotAvailableBookingException;
-import ru.practicum.shareit.exceptions.NotFoundBookingException;
-import ru.practicum.shareit.exceptions.NotFoundItemException;
-import ru.practicum.shareit.exceptions.UserNotOwnerException;
+import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
@@ -41,6 +38,8 @@ public class BookingServiceImplTest {
     private final Booking booking1 = new Booking(1L, LocalDateTime.now().minusDays(1),
             LocalDateTime.now().plusDays(1), item1, user1, null);
     private final BookingDto bookingDto = new BookingDto(1L, LocalDateTime.now(), LocalDateTime.now());
+    private final BookingDto bookingDtoDateError = new BookingDto(1L, LocalDateTime.now().minusHours(1), LocalDateTime.now().minusHours(2));
+
     User user = new User(1, "user1", "user1@mail.ru");
 
     @Test
@@ -73,6 +72,43 @@ public class BookingServiceImplTest {
         RuntimeException thrown = assertThrows(UserNotOwnerException.class, () ->
                 service.createBooking(user2.getId(), bookingDto));
         Assertions.assertEquals("Пользователь с id 2 не может забронировать свою вещь 1", thrown.getMessage());
+    }
+
+    @Test
+    public void createBookingIfUserNotFound() {
+        RuntimeException thrown = Assertions.assertThrows(NotFoundUserException.class, () ->
+                service.createBooking(user2.getId(), bookingDto));
+        Assertions.assertEquals("Пользователь с id = " + user2.getId() + " не найден!", thrown.getMessage());
+    }
+
+    @Test
+    public void updateBookingIfItemNotFound() {
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(user2));
+        RuntimeException thrown = Assertions.assertThrows(NotFoundBookingException.class, () ->
+                service.updateBookingStatus(234, true, user2.getId()));
+        Assertions.assertEquals("Бронирование id = 234 не найдено", thrown.getMessage());
+    }
+
+    @Test
+    public void getAllByUserIndexError() {
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(user2));
+        ArithmeticException thrown = Assertions.assertThrows(ArithmeticException.class, () ->
+                service.getAllBookingByUser(2, State.ALL, 5,0));
+        Assertions.assertEquals("Ошибка в индексе первого элемента или количества элементов для отображения", thrown.getMessage());
+    }
+
+    @Test
+    public void getAllByOwnerIndexError() {
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(user2));
+        ArithmeticException thrown = Assertions.assertThrows(ArithmeticException.class, () ->
+                service.getAllBookingByOwner(2, State.ALL, 5, 0));
+        Assertions.assertEquals("Ошибка в индексе первого элемента или количества элементов для отображения", thrown.getMessage());
     }
 
     @Test
@@ -159,6 +195,14 @@ public class BookingServiceImplTest {
                 thrown.getMessage());
     }
 
+    @Test
+    public void bookingCreateDateError() {
+        item1.setOwner(user2);
+        bookingDtoDateError.setItemId(1L);
+        RuntimeException thrown = assertThrows(IncorrectDataException.class, () ->
+                service.createBooking(user2.getId(), bookingDtoDateError));
+        Assertions.assertEquals("Дата окончания должна быть после даты начала", thrown.getMessage());
+    }
 
     @Test
     public void changeStatusIfNotOwner() {

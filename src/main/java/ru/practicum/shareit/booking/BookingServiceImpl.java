@@ -6,7 +6,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.dto.*;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.OutBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.ItemRepository;
@@ -133,7 +134,7 @@ public class BookingServiceImpl implements BookingService {
             }
 
         } else {
-            throw new ArithmeticException("Ошибка в индекса первого элемента или количества элементов для отображения");
+            throw new ArithmeticException("Ошибка в индексе первого элемента или количества элементов для отображения");
         }
     }
 
@@ -170,7 +171,7 @@ public class BookingServiceImpl implements BookingService {
                             .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             }
         } else {
-            throw new ArithmeticException("Ошибка в индекса первого элемента или количества элементов для отображения");
+            throw new ArithmeticException("Ошибка в индексе первого элемента или количества элементов для отображения");
         }
     }
 

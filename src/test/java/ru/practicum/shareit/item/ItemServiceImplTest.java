@@ -7,25 +7,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingServiceImpl;
+import ru.practicum.shareit.booking.Status;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.Status;
+import ru.practicum.shareit.exceptions.NotFoundItemException;
 import ru.practicum.shareit.exceptions.NotFoundUserException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequestRepository;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 class ItemServiceImplTest {
@@ -88,6 +89,27 @@ class ItemServiceImplTest {
     }
 
     @Test
+    void createErrorNoRequest() {
+        Mockito
+                .when(userRepository.findAll())
+                .thenReturn(users);
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(user));
+        Mockito
+                .when(itemRepository.save(Mockito.any(Item.class)))
+                .thenReturn(item);
+        Mockito
+                .when(userRepository.getReferenceById(Mockito.anyLong()))
+                .thenThrow(new NotFoundUserException("Нет такого запроса"));
+        itemDto.setRequestId(999L);
+
+        final NotFoundItemException exception = Assertions.assertThrows(
+                NotFoundItemException.class, () -> itemService.createItem(itemDto, 1L));
+        Assertions.assertEquals("Нет такого запроса", exception.getMessage());
+    }
+
+    @Test
     void createUserNotExist() {
         Mockito
                 .when(userRepository.findAll())
@@ -98,6 +120,17 @@ class ItemServiceImplTest {
         final NotFoundUserException exception = Assertions.assertThrows(
                 NotFoundUserException.class, () -> itemService.createItem(itemDto, 1L));
         Assertions.assertEquals("Пользователь с id = 1 не найден!", exception.getMessage());
+    }
+
+    @Test
+    public void getAllFail() {
+        User user = new User(1L, "user1", "user1@email.com");
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(user));
+        ArithmeticException thrown = Assertions.assertThrows(ArithmeticException.class, () ->
+                itemService.getAllItem(1, 5, 0));
+        Assertions.assertEquals("Неверные параметры поиска.", thrown.getMessage());
     }
 
     @Test
@@ -202,5 +235,15 @@ class ItemServiceImplTest {
                 assertThat(foundedItemDto.getAvailable(), equalTo(itemDto.getAvailable()));
             }
         }
+    }
+
+    @Test
+    void searchFailPagination() {
+        Mockito
+                .when(itemRepository.searchItems(Mockito.anyString(), Mockito.any(Pageable.class)))
+                .thenReturn(itemPage);
+        final ArithmeticException exception = Assertions.assertThrows(
+                ArithmeticException.class, () -> itemService.searchItems("item1", 5, 0));
+        Assertions.assertEquals("Неверные параметры поиска.", exception.getMessage());
     }
 }

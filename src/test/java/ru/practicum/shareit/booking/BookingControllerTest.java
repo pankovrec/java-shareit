@@ -20,12 +20,9 @@ import java.util.List;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @WebMvcTest(controllers = BookingController.class)
 class BookingControllerTest {
@@ -41,6 +38,8 @@ class BookingControllerTest {
 
     OutBookingDto returnedBookingDto = new OutBookingDto(
             1, null, null, null, null, Status.WAITING);
+    OutBookingDto returnedBookingDto2 = new OutBookingDto(
+            99, null, null, null, null, Status.WAITING);
     private final User user = new User(1L, "User1", "user1@mail.ru");
     private final Item item = new Item(1L, "Item1", "item1_desc", true, user, null);
     private final Booking bookingDto = new Booking(1L, LocalDateTime.now().plusDays(1),
