@@ -58,6 +58,24 @@ public class BookingServiceImplTest {
     }
 
     @Test
+    public void createBookingIfOwner() {
+        item1.setOwner(user2);
+        bookingDto.setItemId(1L);
+        Mockito
+                .when(itemRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(item1));
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.of(user2));
+        Mockito
+                .when(bookingRepository.save(Mockito.any(Booking.class)))
+                .thenReturn(booking1);
+        UserNotOwnerException thrown = Assertions.assertThrows(UserNotOwnerException.class, () ->
+                service.createBooking(user2.getId(), bookingDto));
+        Assertions.assertEquals("Пользователь с id 2 не может забронировать свою вещь 1", thrown.getMessage());
+    }
+
+    @Test
     public void createBookingItemNotFound() {
         bookingDto.setItemId(1L);
         Mockito

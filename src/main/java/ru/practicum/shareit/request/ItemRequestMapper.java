@@ -26,7 +26,7 @@ public class ItemRequestMapper {
         return itemRequestDto;
     }
 
-    private static Set<ItemRequestDto.ItemDto> toItemDtoForItemRequestDto(Collection<Item> items) {
+    public static Set<ItemRequestDto.ItemDto> toItemDtoForItemRequestDto(Collection<Item> items) {
         return items.stream()
                 .map(ItemRequestMapper::toItemDtoForItemRequestDto)
                 .collect(Collectors.toSet());

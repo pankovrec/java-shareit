@@ -62,6 +62,11 @@ class ItemRequestServiceImplTest {
                     requestRepository.getReferenceById(2L)),
             new Item(2, "item2", "item2_desc", true, user,
                     requestRepository.getReferenceById(3L)));
+    List<Item> items2 = List.of(
+            new Item(1, "item1", "item1_desc", true, user,
+                    null),
+            new Item(2, "item2", "item2_desc", true, user,
+                    null));
     List<ItemRequest> itemRequestList = List.of(
             new ItemRequest(1, "I wanna item1", user, LocalDateTime.now()),
             new ItemRequest(2, "I wanna item2", user, LocalDateTime.now()));
@@ -73,6 +78,7 @@ class ItemRequestServiceImplTest {
     PageImpl<ItemRequest> itemRequestPage = new PageImpl<>(List.of(
             new ItemRequest(1, "I wanna use item1", user, LocalDateTime.now()),
             new ItemRequest(2, "I wanna item2", user, LocalDateTime.now())));
+    PageImpl<ItemRequest> itemRequestPage2 = new PageImpl<>(List.of());
 
     @BeforeEach
     void init() {
@@ -107,7 +113,6 @@ class ItemRequestServiceImplTest {
 
         OutBookingDto foundedReturnedBookingDto = bookingService.createBooking(2, resultingBookingDto);
         assertThat(foundedItemRequest.getId(), equalTo(itemRequestDto.getId()));
-        System.out.println(requestRepository.findById(1L));
         assertThat(foundedReturnedBookingDto.getId(), equalTo(returnedBookingDto.getId()));
         assertThat(foundedReturnedBookingDto.getStart(), equalTo(returnedBookingDto.getStart()));
         assertThat(foundedReturnedBookingDto.getEnd(), equalTo(returnedBookingDto.getEnd()));
@@ -136,6 +141,39 @@ class ItemRequestServiceImplTest {
                 () -> requestService.createRequest(1, itemRequestDto2));
         Assertions.assertEquals("Пользователь с данным id не найден", exception.getMessage());
     }
+
+//    @Test
+//    void getById() {
+//        Mockito
+//                .when(itemRepository.findById(Mockito.anyLong()))
+//                .thenReturn(Optional.ofNullable(item));
+//        Mockito
+//                .when(userRepository.findById(Mockito.anyLong()))
+//                .thenReturn(Optional.ofNullable(secondUser));
+//        Mockito
+//                .when(userRepository.getReferenceById(Mockito.anyLong()))
+//                .thenReturn(user);
+//        Mockito
+//                .when(itemRepository.getReferenceById(Mockito.anyLong()))
+//                .thenReturn(item);
+//        Mockito
+//                .when(bookingRepository.save(Mockito.any(Booking.class)))
+//                .thenReturn(booking);
+//        Mockito
+//                .when(requestRepository.save(Mockito.any(ItemRequest.class)))
+//                .thenReturn(itemRequest);
+//        ItemRequestDto foundedItemRequest = requestService.createRequest(2, itemRequestDto2);
+//
+//        OutBookingDto foundedReturnedBookingDto = bookingService.createBooking(2, resultingBookingDto);
+//        assertThat(foundedItemRequest.getId(), equalTo(itemRequestDto.getId()));
+//        ItemRequestDto itemRequestPrint = requestService.getRequestById(2, 1);
+//
+//        System.out.println(itemRequestPrint);
+//        assertThat(foundedReturnedBookingDto.getId(), equalTo(returnedBookingDto.getId()));
+//        assertThat(foundedReturnedBookingDto.getStart(), equalTo(returnedBookingDto.getStart()));
+//        assertThat(foundedReturnedBookingDto.getEnd(), equalTo(returnedBookingDto.getEnd()));
+//        assertThat(foundedReturnedBookingDto.getStatus(), equalTo(returnedBookingDto.getStatus()));
+    //  }
 
     @Test
     void getAllUsersRequests() {
@@ -181,5 +219,48 @@ class ItemRequestServiceImplTest {
                 assertThat(foundedItemRequestDto.getDescription(), equalTo("I wanna item2"));
             }
         }
+    }
+
+    @Test
+    void getAllRequestsIfNull() {
+        Mockito
+                .when(requestRepository.findAllByRequesterIdIsNotLike(Mockito.anyLong(), Mockito.any(Pageable.class)))
+                .thenReturn(itemRequestPage2);
+        Mockito
+                .when(itemRepository.findItemsByRequest(Mockito.anyLong()))
+                .thenReturn(items2);
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(user));
+        Collection<ItemRequestDto> itemRequestDtoList = requestService.getAllRequest(1, 0, 5);
+        for (ItemRequestDto foundedItemRequestDto : itemRequestDtoList) {
+            if (foundedItemRequestDto.getId() == (1)) {
+                assertThat(foundedItemRequestDto.getId(), equalTo(1L));
+                assertThat(foundedItemRequestDto.getDescription(), equalTo("I wanna use item1"));
+            } else if (foundedItemRequestDto.getId() == (2)) {
+                assertThat(foundedItemRequestDto.getId(), equalTo(2L));
+                assertThat(foundedItemRequestDto.getDescription(), equalTo("I wanna item2"));
+            }
+        }
+    }
+
+    @Test
+    void getRequestById() {
+        Mockito
+                .when(requestRepository.findAllByRequesterIdIsNotLike(Mockito.anyLong(), Mockito.any(Pageable.class)))
+                .thenReturn(itemRequestPage);
+        Mockito
+                .when(itemRepository.findItemsByRequest(Mockito.anyLong()))
+                .thenReturn(items);
+        Mockito
+                .when(userRepository.findById(Mockito.anyLong()))
+                .thenReturn(Optional.ofNullable(user));
+        Mockito
+                .when(requestRepository.save(Mockito.any(ItemRequest.class)))
+                .thenReturn(itemRequest);
+        ItemRequestDto foundedItemRequest = requestService.createRequest(2, itemRequestDto2);
+        ItemRequestDto itemRequestDto = requestService.getRequestById(1, 1);
+        assertThat(itemRequestDto.getId(), equalTo(1L));
+        assertThat(itemRequestDto.getDescription(), equalTo("I wanna use item1"));
     }
 }
