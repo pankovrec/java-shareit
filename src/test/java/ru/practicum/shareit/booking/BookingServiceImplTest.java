@@ -10,14 +10,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.OutBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.exceptions.*;
-import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.exceptions.NotAvailableBookingException;
+import ru.practicum.shareit.exceptions.NotFoundBookingException;
+import ru.practicum.shareit.exceptions.NotFoundItemException;
+import ru.practicum.shareit.exceptions.UserNotOwnerException;
 import ru.practicum.shareit.item.ItemRepository;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -67,10 +70,7 @@ public class BookingServiceImplTest {
         Mockito
                 .when(userRepository.findById(Mockito.anyLong()))
                 .thenReturn(Optional.of(user2));
-        Mockito
-                .when(bookingRepository.save(Mockito.any(Booking.class)))
-                .thenReturn(booking1);
-        UserNotOwnerException thrown = Assertions.assertThrows(UserNotOwnerException.class, () ->
+        RuntimeException thrown = assertThrows(UserNotOwnerException.class, () ->
                 service.createBooking(user2.getId(), bookingDto));
         Assertions.assertEquals("Пользователь с id 2 не может забронировать свою вещь 1", thrown.getMessage());
     }

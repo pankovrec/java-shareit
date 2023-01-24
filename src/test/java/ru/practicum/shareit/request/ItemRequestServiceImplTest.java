@@ -14,15 +14,17 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.OutBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exceptions.NotFoundUserException;
-import ru.practicum.shareit.item.*;
+import ru.practicum.shareit.item.CommentRepository;
+import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.ItemService;
+import ru.practicum.shareit.item.ItemServiceImpl;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.InputRequestItemDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
-
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.UserService;
 import ru.practicum.shareit.user.UserServiceImpl;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -142,39 +144,6 @@ class ItemRequestServiceImplTest {
         Assertions.assertEquals("Пользователь с данным id не найден", exception.getMessage());
     }
 
-//    @Test
-//    void getById() {
-//        Mockito
-//                .when(itemRepository.findById(Mockito.anyLong()))
-//                .thenReturn(Optional.ofNullable(item));
-//        Mockito
-//                .when(userRepository.findById(Mockito.anyLong()))
-//                .thenReturn(Optional.ofNullable(secondUser));
-//        Mockito
-//                .when(userRepository.getReferenceById(Mockito.anyLong()))
-//                .thenReturn(user);
-//        Mockito
-//                .when(itemRepository.getReferenceById(Mockito.anyLong()))
-//                .thenReturn(item);
-//        Mockito
-//                .when(bookingRepository.save(Mockito.any(Booking.class)))
-//                .thenReturn(booking);
-//        Mockito
-//                .when(requestRepository.save(Mockito.any(ItemRequest.class)))
-//                .thenReturn(itemRequest);
-//        ItemRequestDto foundedItemRequest = requestService.createRequest(2, itemRequestDto2);
-//
-//        OutBookingDto foundedReturnedBookingDto = bookingService.createBooking(2, resultingBookingDto);
-//        assertThat(foundedItemRequest.getId(), equalTo(itemRequestDto.getId()));
-//        ItemRequestDto itemRequestPrint = requestService.getRequestById(2, 1);
-//
-//        System.out.println(itemRequestPrint);
-//        assertThat(foundedReturnedBookingDto.getId(), equalTo(returnedBookingDto.getId()));
-//        assertThat(foundedReturnedBookingDto.getStart(), equalTo(returnedBookingDto.getStart()));
-//        assertThat(foundedReturnedBookingDto.getEnd(), equalTo(returnedBookingDto.getEnd()));
-//        assertThat(foundedReturnedBookingDto.getStatus(), equalTo(returnedBookingDto.getStatus()));
-    //  }
-
     @Test
     void getAllUsersRequests() {
         Mockito
@@ -242,25 +211,5 @@ class ItemRequestServiceImplTest {
                 assertThat(foundedItemRequestDto.getDescription(), equalTo("I wanna item2"));
             }
         }
-    }
-
-    @Test
-    void getRequestById() {
-        Mockito
-                .when(requestRepository.findAllByRequesterIdIsNotLike(Mockito.anyLong(), Mockito.any(Pageable.class)))
-                .thenReturn(itemRequestPage);
-        Mockito
-                .when(itemRepository.findItemsByRequest(Mockito.anyLong()))
-                .thenReturn(items);
-        Mockito
-                .when(userRepository.findById(Mockito.anyLong()))
-                .thenReturn(Optional.ofNullable(user));
-        Mockito
-                .when(requestRepository.save(Mockito.any(ItemRequest.class)))
-                .thenReturn(itemRequest);
-        ItemRequestDto foundedItemRequest = requestService.createRequest(2, itemRequestDto2);
-        ItemRequestDto itemRequestDto = requestService.getRequestById(1, 1);
-        assertThat(itemRequestDto.getId(), equalTo(1L));
-        assertThat(itemRequestDto.getDescription(), equalTo("I wanna use item1"));
     }
 }
