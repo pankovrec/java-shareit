@@ -51,7 +51,7 @@ class ItemRequestServiceImplTest {
             LocalDateTime.now().minusHours(1L));
     User secondUser = new User(2, "user2", "user2@mail.ru");
     User user = new User(1, "user1", "user1@mail.ru");
-    Item item = new Item(1, "item1", "item1_desc", true, user, itemRequest1);
+    Item item = new Item(1, "item1", "item1_desc", true, user, null);
     LocalDateTime date = LocalDateTime.of(2022, 8, 20, 13, 12);
     Booking booking = new Booking(1, date, date.plusDays(1), item, user, Status.WAITING);
     OutBookingDto.Item bookingItem = new OutBookingDto.Item(1, "name");
@@ -61,9 +61,9 @@ class ItemRequestServiceImplTest {
     BookingDto resultingBookingDto = new BookingDto(1, date, date.plusDays(1));
     List<Item> items = List.of(
             new Item(1, "item1", "item1_desc", true, user,
-                    requestRepository.getReferenceById(2L)),
+                    null),
             new Item(2, "item2", "item2_desc", true, user,
-                    requestRepository.getReferenceById(3L)));
+                    null));
     List<Item> items2 = List.of(
             new Item(1, "item1", "item1_desc", true, user,
                     null),

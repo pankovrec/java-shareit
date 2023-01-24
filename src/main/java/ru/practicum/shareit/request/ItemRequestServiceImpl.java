@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.NotFoundItemException;
 import ru.practicum.shareit.exceptions.NotFoundUserException;
 import ru.practicum.shareit.item.ItemRepository;
-
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.InputRequestItemDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -17,7 +16,10 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +93,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         return userRepository.getReferenceById(userId);
     }
 
-    private List<ItemRequestDto> getListOfItemRequestsDto(List<ItemRequest> itemRequests) {
+    public List<ItemRequestDto> getListOfItemRequestsDto(List<ItemRequest> itemRequests) {
         Map<Long, List<Item>> itemsByItemRequestId = new HashMap<>();
         List<Item> allItems = itemRepository.findAll();
 
