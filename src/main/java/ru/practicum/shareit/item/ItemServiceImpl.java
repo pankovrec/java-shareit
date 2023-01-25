@@ -1,6 +1,9 @@
 package ru.practicum.shareit.item;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.*;
 import ru.practicum.shareit.booking.model.Booking;
@@ -13,11 +16,15 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithBooking;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestMapper;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Item service Impl.
@@ -29,21 +36,40 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Autowired
     public ItemServiceImpl(ItemRepository itemRepository, UserRepository userRepository,
-                           BookingRepository bookingRepository, CommentRepository commentRepository) {
+                           BookingRepository bookingRepository, CommentRepository commentRepository,
+                           ItemRequestRepository itemRequestRepository) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.itemRequestRepository = itemRequestRepository;
     }
 
     @Override
     public ItemDto createItem(ItemDto item, long userId) {
-        User user = userCheck(userId);
-        Item created = ItemMapper.toItem(item, user, null);
-        return ItemMapper.toItemDto(itemRepository.save(created));
+        userCheck(userId);
+        checkItemRequestExistsById(item.getRequestId());
+        Item item1 = getItem(item, userId);
+        Item created = itemRepository.save(item1);
+        if (item.getRequestId() == null) {
+            return ItemRequestMapper.toItemDtoWithoutItemRequestId(created);
+        } else {
+            return ItemMapper.toItemDto(itemRepository.save(created));
+        }
+    }
+
+    private Item getItem(ItemDto itemDto, Long ownerId) {
+        User owner = userRepository.getReferenceById(ownerId);
+        if (itemDto.getRequestId() == null) {
+            return ItemMapper.toItemWithoutItemRequest(itemDto, owner);
+        } else {
+            ItemRequest itemRequest = itemRequestRepository.getReferenceById(itemDto.getRequestId());
+            return ItemMapper.toItem(itemDto, owner, itemRequest);
+        }
     }
 
     @Override
@@ -84,8 +110,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDtoWithBooking> getAllItem(long userId) {
-        List<Item> itemList = itemRepository.findAllByOwnerId(userId);
+    public Collection<ItemDtoWithBooking> getAllItem(long userId, int from, int size) {
+        int page = paginationParameterCheck(from, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").ascending());
+
+        List<Item> itemList = itemRepository.findAllByOwnerId(userId, pageable).getContent();
         List<ItemDtoWithBooking> itemDtoResponseList = new ArrayList<>();
         for (Item item : itemList) {
             ItemDtoWithBooking itemResponseDto = getItemResponseDto(item, userId);
@@ -95,18 +124,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> searchItems(String text) {
-        List<Item> items = new ArrayList<>();
+    public List<ItemDto> searchItems(String text, int from, int size) {
         if (text.isEmpty()) {
             return new ArrayList<>();
         }
-        List<Item> founds = itemRepository.searchItems(text);
-        for (Item item : founds) {
-            if (item.getAvailable()) {
-                items.add(item);
-            }
-        }
-        return ItemMapper.listToItemDto(items);
+        int page = paginationParameterCheck(from, size);
+        Pageable pageable = PageRequest.of(page, size);
+        return itemRepository.searchItems(text, pageable).getContent().stream().map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -141,5 +166,20 @@ public class ItemServiceImpl implements ItemService {
     private User userCheck(long userId) {
         return userRepository.findById(userId).orElseThrow(() ->
                 new NotFoundUserException(String.format("Пользователь с id = %d не найден!", userId)));
+    }
+
+    private void checkItemRequestExistsById(Long requestId) {
+        if (requestId != null && !itemRequestRepository.existsById(requestId)) {
+            throw new NotFoundItemException("Нет такого запроса");
+        }
+    }
+
+    private Integer paginationParameterCheck(int from, int size) {
+        if (size > 0 && from >= 0) {
+            int page = from / size;
+            return page;
+        } else {
+            throw new ArithmeticException("Неверные параметры поиска.");
+        }
     }
 }

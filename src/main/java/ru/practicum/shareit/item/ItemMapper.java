@@ -9,8 +9,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,7 +24,18 @@ public class ItemMapper {
 
     public static ItemDto toItemDto(Item item) {
         return new ItemDto(item.getId(), item.getName(), item.getDescription(), item.getAvailable(),
-                item.getItemRequest() != null ? item.getItemRequest().getId() : null);
+                item.getRequest() != null ? item.getRequest().getId() : null);
+    }
+
+    public static Item toItemWithoutItemRequest(ItemDto itemDto, User owner) {
+        Item item = new Item();
+
+        item.setName(itemDto.getName());
+        item.setDescription(itemDto.getDescription());
+        item.setAvailable(itemDto.getAvailable());
+        item.setOwner(owner);
+
+        return item;
     }
 
     public static ItemDtoWithBooking toItemDtoWithBooking(Item item, Booking lastBooking,
@@ -48,13 +57,5 @@ public class ItemMapper {
 
     public static Set<ItemDtoWithBooking.CommentDto> toCommentDto(Set<Comment> comments) {
         return comments.stream().map(ItemMapper::toCommentDto).collect(Collectors.toSet());
-    }
-
-    public static List<ItemDto> listToItemDto(List<Item> items) {
-        List<ItemDto> dtos = new ArrayList<>();
-        for (Item item : items) {
-            dtos.add(toItemDto(item));
-        }
-        return dtos;
     }
 }

@@ -22,16 +22,15 @@ public interface ItemService {
     /**
      * получить все вещи
      */
-    Collection<ItemDtoWithBooking> getAllItem(long userId);
+    Collection<ItemDtoWithBooking> getAllItem(long userId, int from, int size);
 
     /**
      * поиск вещи
      */
-    List<ItemDto> searchItems(String text);
+    List<ItemDto> searchItems(String text, int from, int size);
 
     /**
      * оставить комментарий
      */
     CommentDto createComment(long userId, long itemId, CommentDtoFromRequest comment);
-
 }

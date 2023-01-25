@@ -7,7 +7,6 @@ import lombok.Data;
  */
 
 @Data
-
 public class BookingDtoItem {
     private long id;
     private long bookerId;

@@ -27,10 +27,10 @@ public interface BookingService {
     /**
      * получить все брони пользователя
      */
-    List<OutBookingDto> getAllBookingByUser(long userId, State state);
+    List<OutBookingDto> getAllBookingByUser(long userId, State state, int from, int size);
 
     /**
      * получить все брони владельца
      */
-    List<OutBookingDto> getAllBookingByOwner(long userId, State state);
+    List<OutBookingDto> getAllBookingByOwner(long userId, State state, int from, int size);
 }
