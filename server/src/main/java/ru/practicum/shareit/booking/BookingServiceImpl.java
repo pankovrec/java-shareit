@@ -41,7 +41,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public OutBookingDto createBooking(long userId, BookingDto bookingDto) {
-        checkBookingDate(bookingDto);
         User booker = userCheck(userId);
         Item item = itemCheck(bookingDto.getItemId());
 
@@ -56,7 +55,6 @@ public class BookingServiceImpl implements BookingService {
         log.info("Пользователь id = {} бронирует вещь id = {}", userId, bookingDto.getItemId());
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
-
 
     private User userCheck(long userId) {
         return userRepository.findById(userId).orElseThrow(() ->
@@ -99,7 +97,6 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
-
     @Override
     public List<OutBookingDto> getAllBookingByUser(long userId, State state, int from, int size) {
         userCheck(userId);
@@ -132,7 +129,6 @@ public class BookingServiceImpl implements BookingService {
                     return bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable).stream()
                             .map(BookingMapper::toBookingDto).collect(Collectors.toList());
             }
-
         } else {
             throw new ArithmeticException("Ошибка в индексе первого элемента или количества элементов для отображения");
         }
@@ -179,12 +175,6 @@ public class BookingServiceImpl implements BookingService {
         if (userId == item.getOwner().getId()) {
             throw new UserNotOwnerException(String.format("Пользователь с id %d не может забронировать свою вещь %d",
                     userId, item.getId()));
-        }
-    }
-
-    private void checkBookingDate(BookingDto bookingRequestDto) {
-        if (bookingRequestDto.getStart().isAfter(bookingRequestDto.getEnd())) {
-            throw new IncorrectDataException("Дата окончания должна быть после даты начала");
         }
     }
 

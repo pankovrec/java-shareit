@@ -198,15 +198,6 @@ public class BookingServiceImplTest {
     }
 
     @Test
-    public void bookingCreateDateError() {
-        item1.setOwner(user2);
-        bookingDtoDateError.setItemId(1L);
-        RuntimeException thrown = assertThrows(IncorrectDataException.class, () ->
-                service.createBooking(user2.getId(), bookingDtoDateError));
-        Assertions.assertEquals("Дата окончания должна быть после даты начала", thrown.getMessage());
-    }
-
-    @Test
     public void changeStatusIfNotOwner() {
         booking1.setId(1L);
         Mockito
